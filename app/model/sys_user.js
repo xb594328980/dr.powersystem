@@ -1,8 +1,10 @@
 'use strict';
 
-module.exports = app => {
+
+module.exports = (app) => {
     const { STRING, INTEGER, DATE } = app.Sequelize;
-    const sys_user = app.model.define('sys_user', {
+    const moment = require('moment');
+    const SysUser = app.model.define('sys_user', {
         id: {
             type: INTEGER,
             primaryKey: true,
@@ -93,7 +95,7 @@ module.exports = app => {
         update_date: {
             type:DATE,
             comment:'更新时间',
-            allowNull:false
+            allowNull:false,
         },
         remarks:{
             type:STRING(255),
@@ -107,7 +109,7 @@ module.exports = app => {
             allowNull:false
         }
     }, {
-        freezeTableName: true, Model 对应的表名将与model名相同
+        freezeTableName: true,
         timestamps: false,
         defaultScope:{
             where:{
@@ -116,18 +118,39 @@ module.exports = app => {
         }
     });
 
-
-
-
-
+    SysUser.associate = function() {
+        app.model.SysUser.belongsTo(app.model.SysOffice, { foreignKey:'office_id' });
+        app.model.SysUser.hasMany(app.model.SysUser, { foreignKey:'create_by',as:'create' });
+        app.model.SysUser.hasMany(app.model.SysUser, { foreignKey:'update_by',as:'update' });
+    }
     /**
      * 按照主键id查找元素
      * create by xingbo 17/06/27
      * @returns {Promise.<void>}
      */
-    sys_user.findById=async()=>{
-        console.log("nihao");
+    SysUser.findById=async(id)=>{
 
+        var include = [{
+            model: app.model.SysOffice,
+            attributes:['name'],
+        },{
+            model: app.model.SysUser,
+            attributes:['name'],
+            as:'update',
+        },{
+                model: app.model.SysUser,
+                attributes:['name'],
+                as:'create',
+            }];
+        // var include = [{
+        //     association:SysUser.belongsTo( app.model.SysOffice, {foreignKey:'office_id', as:'office',targetKey:'id'}),
+        //     attributes:['name']
+        // }];
+        return  SysUser.findOne({
+            where:{id:id},
+            include:include,
+            raw: true
+        });
     }
-    return sys_user;
+    return SysUser;
 };

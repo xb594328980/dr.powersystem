@@ -5,8 +5,8 @@ module.exports = app => {
         async index() {
             const { model } = this.ctx;
             var now = Date.now();
-            const post = await this.ctx.model.SysUser.create({name: "xingbo"});
-            this.success('created: ');
+            const post = await this.ctx.model.SysUser.findById(1);
+            this.success(post);
         }
     }
     return HomeController;

@@ -2,7 +2,7 @@
 
 module.exports = app => {
     const { STRING, INTEGER, DATE } = app.Sequelize;
-    const sys_office = app.model.define('sys_office', {
+    const SysOffice = app.model.define('sys_office', {
         id: {
             type: INTEGER,
             primaryKey: true,
@@ -109,14 +109,45 @@ module.exports = app => {
         }
     });
 
+
+    SysOffice.associate = function() {
+        SysOffice.hasMany(app.model.SysUser, { foreignKey:'office_id' });
+    }
     /**
      * 按照主键id查找元素
      * create by xingbo 17/06/28
      * @returns {Promise.<void>}
      */
-    sys_office.findById=async()=>{
-        console.log("nihao");
-
+    SysOffice.findById=async(id)=>{
+        return  SysOffice.findOne({where:{id:id}});
     }
-    return sys_office;
+
+    /**
+     *  按照主键id软删除
+     *  create by xingbo 17/06/28
+     * @param id 主键id
+     * @param update_by 操作人
+     * @returns {Promise.<*>}
+     */
+    SysOffice.deleteObj=async(id,update_by)=>{
+        return  SysOffice.update({del_flag:1,update_by:update_by,update_date:new Date()},{where:{id:id}});
+    }
+
+    /**
+     * 分页查询
+     * create by xingbo 17/06/28
+     * @param offset 起始页默认0
+     * @param limit 长度默认10
+     * @param searchObj  检索条件obj
+     * @returns {Promise.<*>}
+     */
+    SysOffice.findForPage=async(offset=0,limit=10,searchObj)=>{
+        let where={};
+        return  SysOffice.findAndCountAll({
+            offset:offset,
+            limit:limit,
+            where:where
+        });
+    }
+    return SysOffice;
 };
